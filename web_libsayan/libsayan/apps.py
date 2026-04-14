@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
-
-class LibsayanConfig(AppConfig):
+class LibraryConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'libsayan'
+    verbose_name = 'Библиотечная система'

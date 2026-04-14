@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Запись на мероприятие: {{ event.title }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <p>Вы подтверждаете своё участие?</p>
+    <button type="submit" class="btn">Записаться</button>
+    <a href="{% url 'event_detail' event.id %}" class="btn">Назад</a>
+</form>
+{% endblock %}

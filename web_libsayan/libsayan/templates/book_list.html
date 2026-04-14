@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Список книг</h1>
+
+<form method="get" class="filter-form">
+    <input type="text" name="q" placeholder="Поиск по названию или автору" value="{{ query }}">
+    <select name="genre">
+        <option value="">Все жанры</option>
+        {% for genre in genres %}
+            <option value="{{ genre.id }}" {% if selected_genre == genre.id %}selected{% endif %}>{{ genre.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="sort">
+        <option value="title" {% if sort =='title' %}selected{% endif %}>По названию</option>
+        <option value="author" {% if sort =='author' %}selected{% endif %}>По автору</option>
+        <option value="genre" {% if sort =='genre' %}selected{% endif %}>По жанру</option>
+    </select>
+    <button type="submit" class="btn">Применить</button>
+</form>
+
+<table>
+    <thead>
+        <tr><th>Обложка</th><th>Название</th><th>Автор</th><th>Жанр</th><th>Статус</th><th>Действия</th></tr>
+    </thead>
+    <tbody>
+        {% for book in page_obj %}
+        <tr {% if not book.available %}class="highlight"{% endif %}>
+            <td>{% if book.image %}<img src="{{ book.image.url }}" class="cover">{% else %}📖{% endif %}</td>
+            <td><a href="{% url 'book_detail' book.id %}">{{ book.title }}</a></td>
+            <td>{{ book.author }}</td>
+            <td>{{ book.genre.name }}</td>
+            <td>{% if book.available %}Доступна{% else %}Недоступна{% endif %}</td>
+            <td>
+                {% if user.userprofile.role == 'librarian' or user.userprofile.role == 'admin' %}
+                    <a href="{% url 'book_edit' book.id %}" class="btn btn-sm">Редактировать</a>
+                    <a href="{% url 'book_soft_delete' book.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">Удалить</a>
+                {% endif %}
+                {% if book.available and user.is_authenticated %}
+                    <a href="{% url 'request_book' book.id %}" class="btn btn-sm">Запросить</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&q={{ query }}&genre={{ selected_genre }}&sort={{ sort }}">« Первая</a>
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&genre={{ selected_genre }}&sort={{ sort }}">Назад</a>
+    {% endif %}
+    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&genre={{ selected_genre }}&sort={{ sort }}">Вперёд</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}&genre={{ selected_genre }}&sort={{ sort }}">Последняя »</a>
+    {% endif %}
+</div>
+{% endblock %}

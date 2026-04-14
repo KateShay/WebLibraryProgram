@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Профиль пользователя</h1>
+<div class="card">
+    <p><strong>Имя пользователя:</strong> {{ profile.user.username }}</p>
+    <p><strong>Email:</strong> {{ profile.user.email|default:"не указан" }}</p>
+    <p><strong>Роль:</strong> {{ profile.get_role_display }}</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <label>Телефон</label>
+        <input type="text" name="phone" value="{{ profile.phone }}">
+        
+        <label>Адрес</label>
+        <textarea name="address" rows="3">{{ profile.address }}</textarea>
+        
+        <button type="submit" class="btn">Сохранить</button>
+    </form>
+</div>
+{% endblock %}

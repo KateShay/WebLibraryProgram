@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Управление запросами книг</h1>
+<table>
+    <thead>
+        <tr><th>Читатель</th><th>Книга</th><th>Дата запроса</th><th>Действия</th></tr>
+    </thead>
+    <tbody>
+        {% for req in requests %}
+        <tr>
+            <td>{{ req.user.username }}</td>
+            <td>{{ req.book.title }}</td>
+            <td>{{ req.request_date|date:"d.m.Y H:i" }}</td>
+            <td>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                    <button type="submit" name="action" value="approve" class="btn btn-sm">Одобрить</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">Отклонить</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Нет ожидающих запросов.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

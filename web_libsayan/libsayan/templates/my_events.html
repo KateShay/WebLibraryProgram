@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Мои мероприятия</h1>
+<div class="grid">
+    {% for event in events %}
+        <div class="card">
+            <h3>{{ event.title }}</h3>
+            <p><strong>Дата:</strong> {{ event.event_date|date:"d.m.Y H:i" }}</p>
+            <p><strong>Место:</strong> {{ event.filial.name }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="btn">Подробнее</a>
+        </div>
+    {% empty %}
+        <p>Вы не записаны ни на одно мероприятие.</p>
+    {% endfor %}
+</div>
+{% endblock %}

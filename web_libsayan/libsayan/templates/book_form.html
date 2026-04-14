@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ title }}</h1>
+{% if book_id %}<p>ID книги: {{ book_id }}</p>{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label>Название *</label>
+    <input type="text" name="title" value="{{ book.title|default:'' }}" required>
+    
+    <label>Автор *</label>
+    <input type="text" name="author" value="{{ book.author|default:'' }}" required>
+    
+    <label>Жанр *</label>
+    <select name="genre" required>
+        <option value="">Выберите жанр</option>
+        {% for genre in genres %}
+            <option value="{{ genre.id }}" {% if book.genre.id == genre.id %}selected{% endif %}>{{ genre.name }}</option>
+        {% endfor %}
+    </select>
+    
+    <label>ISBN</label>
+    <input type="text" name="isbn" value="{{ book.isbn|default:'' }}">
+    
+    <label>Доступна</label>
+    <input type="checkbox" name="available" {% if book.available %}checked{% endif %}>
+    
+    <label>Обложка</label>
+    <input type="file" name="image" accept="image/*">
+    
+    <button type="submit" class="btn">Сохранить</button>
+    <a href="{% url 'book_list' %}" class="btn">Отмена</a>
+</form>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ book.title }}</h1>
+<div class="card">
+    {% if book.image %}<img src="{{ book.image.url }}" class="cover-large">{% endif %}
+    <p><strong>Автор:</strong> {{ book.author }}</p>
+    <p><strong>Жанр:</strong> {{ book.genre.name }}</p>
+    <p><strong>ISBN:</strong> {{ book.isbn|default:"не указан" }}</p>
+    <p><strong>Статус:</strong> {% if book.available %}Доступна{% else %}Недоступна{% endif %}</p>
+    <p><strong>Дата добавления:</strong> {{ book.created_at|date:"d.m.Y" }}</p>
+    
+    {% if book.available and user.is_authenticated %}
+        <a href="{% url 'request_book' book.id %}" class="btn">Запросить книгу</a>
+    {% endif %}
+    <a href="{% url 'book_list' %}" class="btn">Назад к списку</a>
+</div>
+{% endblock %}

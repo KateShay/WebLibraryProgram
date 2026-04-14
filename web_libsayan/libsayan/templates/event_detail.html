@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ event.title }}</h1>
+<div class="card">
+    <p><strong>Описание:</strong> {{ event.description }}</p>
+    <p><strong>Дата и время:</strong> {{ event.event_date|date:"d.m.Y H:i" }}</p>
+    <p><strong>Филиал:</strong> {{ event.filial.name }}, {{ event.filial.address }}</p>
+    <p><strong>Участники:</strong> {{ event.participants.count }}{% if event.max_participants > 0 %} / {{ event.max_participants }}{% endif %}</p>
+    
+    {% if user.is_authenticated %}
+        {% if user_registered %}
+            <p>Вы записаны на это мероприятие.</p>
+        {% elif event.event_date > now and not event.is_full %}
+            <a href="{% url 'register_event' event.id %}" class="btn">Записаться</a>
+        {% elif event.is_full %}
+            <p>Мест нет.</p>
+        {% endif %}
+    {% else %}
+        <p><a href="{% url 'login' %}">Войдите</a>, чтобы записаться.</p>
+    {% endif %}
+    
+    {% if user.userprofile.role == 'librarian' or user.userprofile.role == 'admin' %}
+        <a href="{% url 'event_edit' event.id %}" class="btn">Редактировать</a>
+        <a href="{% url 'event_soft_delete' event.id %}" class="btn btn-danger" onclick="return confirm('Удалить мероприятие?')">Удалить</a>
+    {% endif %}
+    
+    <a href="{% url 'event_list' %}" class="btn">Назад</a>
+</div>
+{% endblock %}

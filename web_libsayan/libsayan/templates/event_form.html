@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ title }}</h1>
+{% if event_id %}<p>ID мероприятия: {{ event_id }}</p>{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <label>Название *</label>
+    <input type="text" name="title" value="{{ event.title|default:'' }}" required>
+    
+    <label>Описание *</label>
+    <textarea name="description" rows="4" required>{{ event.description|default:'' }}</textarea>
+    
+    <label>Дата и время *</label>
+    <input type="datetime-local" name="event_date" value="{{ event.event_date|date:'Y-m-d\TH:i'|default:'' }}" required>
+    
+    <label>Филиал *</label>
+    <select name="filial" required>
+        <option value="">Выберите филиал</option>
+        {% for filial in filials %}
+            <option value="{{ filial.id }}" {% if event.filial.id == filial.id %}selected{% endif %}>{{ filial.name }}</option>
+        {% endfor %}
+    </select>
+    
+    <label>Максимум участников (0 - без ограничений)</label>
+    <input type="number" name="max_participants" value="{{ event.max_participants|default:0 }}" min="0">
+    
+    <button type="submit" class="btn">Сохранить</button>
+    <a href="{% url 'event_list' %}" class="btn">Отмена</a>
+</form>
+{% endblock %}

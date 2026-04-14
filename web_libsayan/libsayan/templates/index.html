@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Главная | Саяногорская ЦБС{% endblock %}
+
+{% block content %}
+<h1>Добро пожаловать в библиотеку!</h1>
+<div class="grid">
+    {% for event in upcoming_events %}
+        <div class="card">
+            <h3>{{ event.title }}</h3>
+            <p><strong>Дата:</strong> {{ event.event_date|date:"d.m.Y H:i" }}</p>
+            <p><strong>Место:</strong> {{ event.filial.name }}</p>
+            <p>{{ event.description|truncatewords:20 }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="btn">Подробнее</a>
+        </div>
+    {% empty %}
+        <p>Нет предстоящих мероприятий.</p>
+    {% endfor %}
+</div>
+{% endblock %}
