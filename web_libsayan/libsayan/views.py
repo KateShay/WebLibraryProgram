@@ -10,8 +10,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from .models import Book, BookRequest, Event, Genre, Filial, UserProfile
-import matplotlib.pyplot as plt
-
+from datetime import timedelta
 
 def delete_old_image(book_instance, new_image):
     try:
@@ -53,16 +52,26 @@ def register(request):
 
 
 def book_list(request):
+    # Только активные книги (не удалённые)
     books = Book.objects.filter(delete_date__isnull=True)
 
+    # Поиск
     query = request.GET.get('q', '')
     if query:
         books = books.filter(Q(title__icontains=query) | Q(author__icontains=query))
 
+    # Фильтрация по жанру
     genre_id = request.GET.get('genre')
-    if genre_id:
-        books = books.filter(genre_id=genre_id)
+    if genre_id and genre_id not in ('None', '', 'null'):
+        try:
+            genre_id = int(genre_id)
+            books = books.filter(genre_id=genre_id)
+        except (ValueError, TypeError):
+            genre_id = None
+    else:
+        genre_id = None
 
+    # Сортировка
     sort = request.GET.get('sort', 'title')
     if sort == 'author':
         books = books.order_by('author')
@@ -70,19 +79,22 @@ def book_list(request):
         books = books.order_by('genre__name')
     else:
         books = books.order_by('title')
+        sort = 'title'
 
+    # Пагинация
     paginator = Paginator(books, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Жанры для фильтра
     genres = Genre.objects.filter(delete_date__isnull=True)
 
     return render(request, 'book_list.html', {
         'page_obj': page_obj,
         'genres': genres,
         'query': query,
-        'selected_genre': genre_id,
-        'sort': sort
+        'selected_genre': str(genre_id) if genre_id else '',
+        'sort': sort,
     })
 
 
@@ -353,37 +365,47 @@ def profile(request):
 
 
 def statistics(request):
-    from datetime import timedelta
-    now = timezone.now()
-    start_date = now - timedelta(days=180)
-    requests_data = BookRequest.objects.filter(request_date__gte=start_date)
+    """Страница статистики с графиком"""
 
-    months = []
-    counts = []
-    for i in range(5, -1, -1):
-        month_start = (now - timedelta(days=30 * i)).replace(day=1, hour=0, minute=0, second=0)
-        month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(seconds=1)
-        count = requests_data.filter(request_date__range=(month_start, month_end)).count()
-        months.append(month_start.strftime('%b %Y'))
-        counts.append(count)
+    # Импортируем matplotlib внутри функции
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
 
-    plt.figure(figsize=(10, 5))
-    plt.bar(months, counts, color='#CE5656')
-    plt.title('Количество запросов книг за последние 6 месяцев', fontsize=14, color='#27408B')
-    plt.xlabel('Месяц', fontsize=12)
-    plt.ylabel('Количество запросов', fontsize=12)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
+    try:
+        now = timezone.now()
+        start_date = now - timedelta(days=180)
+        requests_data = BookRequest.objects.filter(request_date__gte=start_date)
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
-    buf.close()
-    plt.close()
+        months = []
+        counts = []
+        for i in range(5, -1, -1):
+            month_start = (now - timedelta(days=30 * i)).replace(day=1, hour=0, minute=0, second=0)
+            month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(seconds=1)
+            count = requests_data.filter(request_date__range=(month_start, month_end)).count()
+            months.append(month_start.strftime('%b %Y'))
+            counts.append(count)
 
-    return render(request, 'statistics.html', {'graph': image_base64})
+        # Создаём график
+        plt.figure(figsize=(10, 5))
+        plt.bar(months, counts, color='#CE5656')
+        plt.title('Количество запросов книг за последние 6 месяцев', fontsize=14, color='#27408B')
+        plt.xlabel('Месяц', fontsize=12)
+        plt.ylabel('Количество запросов', fontsize=12)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
 
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+        plt.close()
+
+        return render(request, 'statistics.html', {'graph': image_base64})
+
+    except Exception as e:
+        return render(request, 'statistics.html', {'error': f'Ошибка: {str(e)}'})
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)

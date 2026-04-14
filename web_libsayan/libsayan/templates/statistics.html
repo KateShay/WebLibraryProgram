@@ -1,7 +1,24 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h1>Статистика запросов книг</h1>
-<div class="card">
-    <img src="data:image/png;base64,{{ graph }}" alt="График статистики">
+<h1>Статистика библиотеки</h1>
+
+{% if error %}
+    <div class="message error">
+        <strong>Ошибка:</strong> {{ error }}
+    </div>
+{% elif graph %}
+    <div class="card">
+        <img src="data:image/png;base64,{{ graph }}" alt="График статистики" style="max-width: 100%;">
+    </div>
+{% else %}
+    <div class="message warning">
+        Данные для статистики отсутствуют.
+    </div>
+{% endif %}
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'index' %}" class="btn">На главную</a>
 </div>
+
 {% endblock %}

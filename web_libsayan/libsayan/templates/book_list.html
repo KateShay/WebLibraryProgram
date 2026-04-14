@@ -7,13 +7,15 @@
     <select name="genre">
         <option value="">Все жанры</option>
         {% for genre in genres %}
-            <option value="{{ genre.id }}" {% if selected_genre == genre.id %}selected{% endif %}>{{ genre.name }}</option>
+            <option value="{{ genre.id }}" {% if selected_genre == genre.id %}selected{% endif %}>
+                {{ genre.name }}
+            </option>
         {% endfor %}
     </select>
     <select name="sort">
-        <option value="title" {% if sort =='title' %}selected{% endif %}>По названию</option>
-        <option value="author" {% if sort =='author' %}selected{% endif %}>По автору</option>
-        <option value="genre" {% if sort =='genre' %}selected{% endif %}>По жанру</option>
+        <option value="title" {% if sort == "title" %}selected{% endif %}>По названию</option>
+        <option value="author" {% if sort == "author" %}selected{% endif %}>По автору</option>
+        <option value="genre" {% if sort == "genre" %}selected{% endif %}>По жанру</option>
     </select>
     <button type="submit" class="btn">Применить</button>
 </form>
